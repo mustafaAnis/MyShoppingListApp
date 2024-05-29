@@ -1,6 +1,7 @@
 package com.example.myshoppinglistapp
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,10 +9,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -149,6 +153,56 @@ fun ShopingListApp(){
     }
 
 }
+
+@Composable
+fun ShoppingItemEditor(item: ShopingList,onEditComplete: (String,Int)->Unit){
+    var editedName by remember {
+        mutableStateOf(item.name)
+    }
+    var editQuantity by remember {
+        mutableStateOf(item.quantity.toString())
+    }
+    var isEditing by remember {
+        mutableStateOf(item.isEditing)
+    }
+    Row (modifier = Modifier
+        .fillMaxWidth()
+        .background(Color.White)
+        .padding(8.dp),
+horizontalArrangement = Arrangement.SpaceEvenly
+        ){
+
+        Column {
+            BasicTextField(
+                value = editedName,
+                onValueChange = {editedName = it},
+                singleLine = true,
+                modifier = Modifier
+                    .wrapContentSize()
+                    .padding(8.dp)
+                )
+
+            BasicTextField(
+                value = editQuantity,
+                onValueChange = {editQuantity = it},
+                singleLine = true,
+                modifier = Modifier
+                    .wrapContentSize()
+                    .padding(8.dp)
+                )
+        }
+        Button(onClick = {
+            isEditing =false
+            onEditComplete(editedName,editQuantity.toIntOrNull() ?: 1)
+
+        }) {
+            Text(text = "Save")
+            
+        }
+    }
+}
+
+
 @Composable
 fun ShoppingListItem(
     item:ShopingList,
@@ -164,7 +218,7 @@ fun ShoppingListItem(
                 shape = RoundedCornerShape(20)
             )
     ){
-        
+
         Text(text = item.name, modifier = Modifier.padding(8.dp))
         Text(text = "Qty: ${item.quantity}", modifier = Modifier.padding(8.dp))
 
@@ -172,7 +226,12 @@ fun ShoppingListItem(
 
             IconButton(onClick = {onEditClick}) {
                 Icon(imageVector = Icons.Default.Edit, contentDescription = null)
-                
+
+            }
+
+            IconButton(onClick = {onDeleteClick}) {
+                Icon(imageVector = Icons.Default.Delete, contentDescription = null)
+
             }
 
         }
@@ -185,4 +244,11 @@ fun ShoppingListItem(
 fun ShopingListItemPreview(){
     val myItem = ShopingList(1,"Computer",4)
     ShoppingListItem(myItem,{},{})
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ShoppingItemEditorPreview(){
+    val myItem = ShopingList(1,"Computer",4)
+    ShoppingItemEditor(item = myItem,onEditComplete = { name,count -> })
 }
