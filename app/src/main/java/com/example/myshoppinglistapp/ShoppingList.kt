@@ -26,28 +26,26 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 
 data class ShopingList(
-    val id:Int,
-    var name:String,
-    var quantity:Int,
-    var isEditing: Boolean =false
+    val id: Int,
+    var name: String,
+    var quantity: Int,
+    var isEditing: Boolean = false
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShopingListApp(){
+fun ShopingListApp() {
     var sItems by remember {
         mutableStateOf(listOf<ShopingList>())
     }
@@ -70,74 +68,88 @@ fun ShopingListApp(){
         verticalArrangement = Arrangement.Center
     ) {
 
-        Button(onClick = { showDialog = true},
+        Button(
+            onClick = { showDialog = true },
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
             Text(text = "Add Item")
-
         }
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            items(sItems){
-                ShoppingListItem(it,{},{})
+            items(sItems) { item ->
+                if (item.isEditing) {
+                    ShoppingItemEditor(item = item, onEditComplete = { editedName, editedQuantity ->
+                        sItems = sItems.map { it.copy(isEditing = false) }
+                        val editedItem = sItems.find { it.id == item.id }
+                        editedItem?.let {
+                            it.name = editedName
+                            it.quantity = editedQuantity
+                        }
+                    })
+                } else {
+                    ShoppingListItem(
+                        item = item,
+                        onEditClick = {sItems = sItems.map { it.copy(isEditing = it.id == item.id) } },
+                        onDeleteClick = { sItems = sItems - item }
+                    )
+                }
 
             }
 
         }
     }
 
-    if (showDialog){
+    if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
             confirmButton = {
-                            Row (
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(8.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ){
-                                Button(
-                                    onClick = {
-                                        if(itemName.isNotBlank()){
-                                            val newItem = ShopingList(
-                                                id = sItems.size + 1,
-                                                name = itemName,
-                                                quantity = itemQuantity.toInt()
-                                            )
-                                            sItems = sItems + newItem
-                                            showDialog = false
-                                            itemName = ""
-                                        }
-
-
-
-                                    }) {
-                                    Text(text = "Add")
-                                }
-                                Button(
-                                    onClick = {showDialog = false}) {
-                                    Text(text = "Cancel")
-                                }
-
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Button(
+                        onClick = {
+                            if (itemName.isNotBlank()) {
+                                val newItem = ShopingList(
+                                    id = sItems.size + 1,
+                                    name = itemName,
+                                    quantity = itemQuantity.toInt()
+                                )
+                                sItems = sItems + newItem
+                                showDialog = false
+                                itemName = ""
                             }
+
+
+                        }) {
+                        Text(text = "Add")
+                    }
+                    Button(
+                        onClick = { showDialog = false }) {
+                        Text(text = "Cancel")
+                    }
+
+                }
             },
-            title = { Text(text = "Add Shopping Item")},
+            title = { Text(text = "Add Shopping Item") },
             text = {
                 Column {
                     OutlinedTextField(
                         value = itemName,
-                        onValueChange ={itemName = it},
+                        onValueChange = { itemName = it },
                         singleLine = true,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp)
-                        )
+                    )
                     OutlinedTextField(
                         value = itemQuantity,
-                        onValueChange ={itemQuantity = it},
+                        onValueChange = { itemQuantity = it },
                         singleLine = true,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -155,7 +167,7 @@ fun ShopingListApp(){
 }
 
 @Composable
-fun ShoppingItemEditor(item: ShopingList,onEditComplete: (String,Int)->Unit){
+fun ShoppingItemEditor(item: ShopingList, onEditComplete: (String, Int) -> Unit) {
     var editedName by remember {
         mutableStateOf(item.name)
     }
@@ -165,39 +177,40 @@ fun ShoppingItemEditor(item: ShopingList,onEditComplete: (String,Int)->Unit){
     var isEditing by remember {
         mutableStateOf(item.isEditing)
     }
-    Row (modifier = Modifier
-        .fillMaxWidth()
-        .background(Color.White)
-        .padding(8.dp),
-horizontalArrangement = Arrangement.SpaceEvenly
-        ){
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
 
         Column {
             BasicTextField(
                 value = editedName,
-                onValueChange = {editedName = it},
+                onValueChange = { editedName = it },
                 singleLine = true,
                 modifier = Modifier
                     .wrapContentSize()
                     .padding(8.dp)
-                )
+            )
 
             BasicTextField(
                 value = editQuantity,
-                onValueChange = {editQuantity = it},
+                onValueChange = { editQuantity = it },
                 singleLine = true,
                 modifier = Modifier
                     .wrapContentSize()
                     .padding(8.dp)
-                )
+            )
         }
         Button(onClick = {
-            isEditing =false
-            onEditComplete(editedName,editQuantity.toIntOrNull() ?: 1)
+            isEditing = false
+            onEditComplete(editedName, editQuantity.toIntOrNull() ?: 1)
 
         }) {
             Text(text = "Save")
-            
+
         }
     }
 }
@@ -205,10 +218,10 @@ horizontalArrangement = Arrangement.SpaceEvenly
 
 @Composable
 fun ShoppingListItem(
-    item:ShopingList,
-    onEditClick: ()->Unit,
-    onDeleteClick: ()->Unit
-){
+    item: ShopingList,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .padding(8.dp)
@@ -216,20 +229,21 @@ fun ShoppingListItem(
             .border(
                 border = BorderStroke(2.dp, Color.Blue),
                 shape = RoundedCornerShape(20)
-            )
-    ){
+            ),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
 
         Text(text = item.name, modifier = Modifier.padding(8.dp))
         Text(text = "Qty: ${item.quantity}", modifier = Modifier.padding(8.dp))
 
-        Row (modifier = Modifier.padding(8.dp)){
+        Row(modifier = Modifier.padding(8.dp)) {
 
-            IconButton(onClick = {onEditClick}) {
+            IconButton(onClick = onEditClick ) {
                 Icon(imageVector = Icons.Default.Edit, contentDescription = null)
 
             }
 
-            IconButton(onClick = {onDeleteClick}) {
+            IconButton(onClick = onDeleteClick ) {
                 Icon(imageVector = Icons.Default.Delete, contentDescription = null)
 
             }
@@ -239,16 +253,17 @@ fun ShoppingListItem(
     }
 
 }
+
 @Preview(showBackground = true)
 @Composable
-fun ShopingListItemPreview(){
-    val myItem = ShopingList(1,"Computer",4)
-    ShoppingListItem(myItem,{},{})
+fun ShopingListItemPreview() {
+    val myItem = ShopingList(1, "Computer", 4)
+    ShoppingListItem(myItem, {}, {})
 }
 
 @Preview(showBackground = true)
 @Composable
-fun ShoppingItemEditorPreview(){
-    val myItem = ShopingList(1,"Computer",4)
-    ShoppingItemEditor(item = myItem,onEditComplete = { name,count -> })
+fun ShoppingItemEditorPreview() {
+    val myItem = ShopingList(1, "Computer", 4)
+    ShoppingItemEditor(item = myItem, onEditComplete = { name, count -> })
 }
